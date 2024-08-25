@@ -40,8 +40,8 @@ const queries = {
     const user = await prismaClient.user.findUnique({
       where: { email: data.email },
     });
-    console.log("data")
-    console.log(data)
+    console.log("data");
+    console.log(data);
 
     if (!user) {
       await prismaClient.user.create({
@@ -58,9 +58,6 @@ const queries = {
       where: { email: data.email },
     });
 
-
-    
-
     if (!userInDb) throw new Error("User with email not found");
 
     const userToken = JWTService.generateTokenForUser(userInDb);
@@ -73,8 +70,17 @@ const queries = {
     if (!id) return null;
 
     const user = await prismaClient.user.findUnique({ where: { id } });
-    console.log("from server DB")
+    console.log("from server DB");
     console.log(user);
+    return user;
+  },
+
+  getUserByID: async (
+    parent: any,
+    { id }: { id: string },
+    ctx: GraphqlContext
+  ) => {
+    const user = await prismaClient.user.findUnique({ where: { id: id } });
     return user;
   },
 };
