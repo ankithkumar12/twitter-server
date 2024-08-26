@@ -2,6 +2,7 @@ import axios from "axios";
 
 import { prismaClient } from "../clients/db";
 import JWTService from "./jwt";
+import { connect } from "http2";
 
 interface GoogleTokenResult {
   iss?: string;
@@ -66,6 +67,30 @@ class UserService {
   public static async getCurrentUserByID(id: string) {
     const user = await prismaClient.user.findUnique({ where: { id } });
     return user;
+  }
+
+  public static async followUser(from: string, to: string) {
+    const res = await prismaClient.follows.create({
+      data: {
+        follower: { connect: { id: from } },
+        following: { connect: { id: to } },
+      },
+    });
+
+    return true;
+  }
+
+  public static async unfollowUser(from: string, to: string) {
+    const res = await prismaClient.follows.delete({
+      where: {
+        followerID_followingID: {
+          followerID: from,
+          followingID: to,
+        },
+      },
+    });
+
+    return true;
   }
 }
 
