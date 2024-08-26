@@ -13,7 +13,7 @@ interface CreateTweetContent {
 }
 
 const client = new S3Client({
-  region: "ap-south-1",
+  region: process.env.AWS_DEFAULT_REGION,
 });
 
 class TweetService {
