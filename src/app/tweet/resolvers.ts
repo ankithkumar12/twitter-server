@@ -11,6 +11,7 @@ const mutations = {
     ctx: GraphqlContext
   ) => {
     if (!ctx.user) throw new Error("You need to be logged in");
+    
 
     return await TweetService.createTweetByUserID(payload, ctx.user.id);
   },

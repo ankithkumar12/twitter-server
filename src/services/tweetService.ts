@@ -80,6 +80,11 @@ class TweetService {
     payload: CreateTweetContent,
     id: string
   ) {
+    const isRateLimited = await redisClient.get(`RATE:LIMIT:${id}`);
+    if (isRateLimited) {
+      throw Error("Please wait for few seconds");
+    }
+
     const tweet = await prismaClient.tweet.create({
       data: {
         content: payload.content,
@@ -88,6 +93,7 @@ class TweetService {
       },
     });
 
+    await redisClient.setex(`RATE:LIMIT:${id}`, 10, 1);
     await redisClient.del("tweets");
     await redisClient.del(`tweetsByAuthorID:${id}`);
 
