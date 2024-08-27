@@ -1,4 +1,5 @@
 import { prismaClient } from "../clients/db";
+import { redisClient } from "../clients/redis";
 
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const {
@@ -18,18 +19,31 @@ const client = new S3Client({
 
 class TweetService {
   public static async getAllTweets() {
+    const cachedTweets = await redisClient.get("tweets");
+    if (cachedTweets) return JSON.parse(cachedTweets);
+
     const tweets = await prismaClient.tweet.findMany({
       orderBy: { createdAt: "desc" },
     });
+
+    await redisClient.set("tweets", JSON.stringify(tweets));
 
     return tweets;
   }
 
   public static async getTweetsByAuthorID(authorId: string) {
+    const cachedTweets = await redisClient.get(`tweetsByAuthorID:${authorId}`);
+    if (cachedTweets) return JSON.parse(cachedTweets);
+
     const tweets = await prismaClient.tweet.findMany({
       where: { authorId },
       orderBy: { createdAt: "desc" },
     });
+
+    await redisClient.set(
+      `tweetsByAuthorID:${authorId}`,
+      JSON.stringify(tweets)
+    );
 
     return tweets;
   }
@@ -73,6 +87,9 @@ class TweetService {
         author: { connect: { id: id } },
       },
     });
+
+    await redisClient.del("tweets");
+    await redisClient.del(`tweetsByAuthorID:${id}`);
 
     return tweet;
   }

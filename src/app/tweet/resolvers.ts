@@ -18,6 +18,7 @@ const mutations = {
 
 const queries = {
   getAllTweets: async () => {
+    
     return await TweetService.getAllTweets();
   },
 
